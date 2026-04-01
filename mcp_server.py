@@ -3,8 +3,8 @@ import requests
 
 app = FastAPI()
 
-GITHUB_TOKEN = "PASTE_YOUR_TOKEN_HERE"
-REPO = "your-username/your-repo"
+GITHUB_TOKEN = "${{ secrets.MY_TOKEN }}"
+REPO = "umesh-systango/my-project"
 
 @app.get("/trigger-pipeline")
 def trigger_pipeline():
