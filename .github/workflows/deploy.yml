@@ -1,0 +1,50 @@
+name: Auto Build & Deploy
+
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  build-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v3
+
+    - name: Detect Language
+      id: detect
+      run: |
+        chmod +x detect.sh
+        LANG=$(./detect.sh)
+        echo "lang=$LANG" >> $GITHUB_OUTPUT
+
+    - name: Generate Dockerfile
+      run: |
+        chmod +x generate-dockerfile.sh
+        ./generate-dockerfile.sh ${{ steps.detect.outputs.lang }}
+
+    - name: Azure Login
+      uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+    - name: Login to ACR
+      run: |
+        az acr login --name mcptestrepo.azurecr.io
+
+    - name: Build Image
+      run: |
+        docker build -t mcptestrepo.azurecr.io/myapp:${{ github.sha }} .
+
+    - name: Push Image
+      run: |
+        docker push mcptestrepo.azurecr.io/myapp:${{ github.sha }}
+
+    - name: Deploy to Web App
+      run: |
+        az webapp config container set \
+          --name my-app \
+          --resource-group mcp-test \
+          --docker-custom-image-name mcptestrepo.azurecr.io/myapp:${{ github.sha }}
+
