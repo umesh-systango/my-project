@@ -44,7 +44,7 @@ jobs:
     - name: Deploy to Web App
       run: |
         az webapp config container set \
-          --name my-app \
+          --name my-mcp-app \
           --resource-group mcp-test \
           --docker-custom-image-name mcptestrepo.azurecr.io/myapp:${{ github.sha }}
 
